@@ -9,7 +9,7 @@ import os
 st.set_page_config(page_title="IPL_Score_Predictor", layout="centered")
 
 # Google Drive File ID for `ml_model.pkl`
-file_id = "1VRZ9mmfzy3hiZq9rNsotEnOiasnS4pg7"  # Replace with actual file ID
+file_id = "1ddgUCDcKRBIp-HZA7qwMpNDOXYjWEIzl"  # Replace with actual file ID
 
 # Define model file path
 model_path = "ml_model.pkl"
