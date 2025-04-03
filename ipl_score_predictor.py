@@ -1,133 +1,108 @@
-#import the libraries
-
 import math
 import numpy as np
 import pickle
 import streamlit as st
+import gdown
+import os
 
-#SET PAGE WIDE
-st.set_page_config(page_title='IPL_Score_Predictor',layout="centered")
+# SET PAGE WIDE
+st.set_page_config(page_title='IPL_Score_Predictor', layout="centered")
 
-#Get the ML model 
+# Google Drive file ID (Replace with your actual file ID)
+file_id = "1VRZ9mmfzy3hiZq9rNsotEnOiasnS4pg7"
+model_path = "ml_model.pkl"
 
-filename='ml_model.pkl'
-model = pickle.load(open(filename,'rb'))
+# Download model if not already present
+if not os.path.exists(model_path):
+    url = f"https://drive.google.com/uc?id={file_id}"
+    gdown.download(url, model_path, quiet=False)
 
-#Title of the page with CSS
+# Load the ML model
+with open(model_path, 'rb') as file:
+    model = pickle.load(file)
 
+# Title of the page with CSS
 st.markdown("<h1 style='text-align: center; color: white;'> IPL Score Predictor 2022 </h1>", unsafe_allow_html=True)
 
-#Add background image
-
+# Add background image
 st.markdown(
-         f"""
-         <style>
-         .stApp {{
-             background-image: url("https://4.bp.blogspot.com/-F6aZF5PMwBQ/Wrj5h204qxI/AAAAAAAABao/4QLn48RP3x0P8Ry0CcktxilJqRfv1IfcACLcBGAs/s1600/GURU%2BEDITZ%2Bbackground.jpg");
-             background-attachment: fixed;
-             background-size: cover
-         }}
-         </style>
-         """,
-         unsafe_allow_html=True
-     )
+    """
+    <style>
+    .stApp {
+        background-image: url("https://4.bp.blogspot.com/-F6aZF5PMwBQ/Wrj5h204qxI/AAAAAAAABao/4QLn48RP3x0P8Ry0CcktxilJqRfv1IfcACLcBGAs/s1600/GURU%2BEDITZ%2Bbackground.jpg");
+        background-attachment: fixed;
+        background-size: cover
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-#Add description
-
+# Add description
 with st.expander("Description"):
-    st.info("""A Simple ML Model to predict IPL Scores between teams in an ongoing match. To make sure the model results accurate score and some reliability the minimum no. of current overs considered is greater than 5 overs.
-    
- """)
+    st.info("""A Simple ML Model to predict IPL Scores between teams in an ongoing match. To make sure the model results in accurate score predictions, the minimum number of current overs considered is greater than 5 overs.""")
 
-# SELECT THE BATTING TEAM
-
-
-batting_team= st.selectbox('Select the Batting Team ',('Chennai Super Kings', 'Delhi Daredevils', 'Kings XI Punjab','Kolkata Knight Riders','Mumbai Indians','Rajasthan Royals','Royal Challengers Bangalore','Sunrisers Hyderabad'))
+# Select Batting Team
+batting_team = st.selectbox('Select the Batting Team ', (
+    'Chennai Super Kings', 'Delhi Daredevils', 'Kings XI Punjab',
+    'Kolkata Knight Riders', 'Mumbai Indians', 'Rajasthan Royals',
+    'Royal Challengers Bangalore', 'Sunrisers Hyderabad'
+))
 
 prediction_array = []
-  # Batting Team
-if batting_team == 'Chennai Super Kings':
-    prediction_array = prediction_array + [1,0,0,0,0,0,0,0]
-elif batting_team == 'Delhi Daredevils':
-    prediction_array = prediction_array + [0,1,0,0,0,0,0,0]
-elif batting_team == 'Kings XI Punjab':
-    prediction_array = prediction_array + [0,0,1,0,0,0,0,0]
-elif batting_team == 'Kolkata Knight Riders':
-    prediction_array = prediction_array + [0,0,0,1,0,0,0,0]
-elif batting_team == 'Mumbai Indians':
-    prediction_array = prediction_array + [0,0,0,0,1,0,0,0]
-elif batting_team == 'Rajasthan Royals':
-    prediction_array = prediction_array + [0,0,0,0,0,1,0,0]
-elif batting_team == 'Royal Challengers Bangalore':
-    prediction_array = prediction_array + [0,0,0,0,0,0,1,0]
-elif batting_team == 'Sunrisers Hyderabad':
-    prediction_array = prediction_array + [0,0,0,0,0,0,0,1]
+team_mapping = {
+    'Chennai Super Kings': [1, 0, 0, 0, 0, 0, 0, 0],
+    'Delhi Daredevils': [0, 1, 0, 0, 0, 0, 0, 0],
+    'Kings XI Punjab': [0, 0, 1, 0, 0, 0, 0, 0],
+    'Kolkata Knight Riders': [0, 0, 0, 1, 0, 0, 0, 0],
+    'Mumbai Indians': [0, 0, 0, 0, 1, 0, 0, 0],
+    'Rajasthan Royals': [0, 0, 0, 0, 0, 1, 0, 0],
+    'Royal Challengers Bangalore': [0, 0, 0, 0, 0, 0, 1, 0],
+    'Sunrisers Hyderabad': [0, 0, 0, 0, 0, 0, 0, 1]
+}
+prediction_array.extend(team_mapping[batting_team])
 
+# Select Bowling Team
+bowling_team = st.selectbox('Select the Bowling Team ', (
+    'Chennai Super Kings', 'Delhi Daredevils', 'Kings XI Punjab',
+    'Kolkata Knight Riders', 'Mumbai Indians', 'Rajasthan Royals',
+    'Royal Challengers Bangalore', 'Sunrisers Hyderabad'
+))
 
-
-
-#SELECT BOWLING TEAM
-
-bowling_team = st.selectbox('Select the Bowling Team ',('Chennai Super Kings', 'Delhi Daredevils', 'Kings XI Punjab','Kolkata Knight Riders','Mumbai Indians','Rajasthan Royals','Royal Challengers Bangalore','Sunrisers Hyderabad'))
-if bowling_team==batting_team:
+if bowling_team == batting_team:
     st.error('Bowling and Batting teams should be different')
-# Bowling Team
-if bowling_team == 'Chennai Super Kings':
-    prediction_array = prediction_array + [1,0,0,0,0,0,0,0]
-elif bowling_team == 'Delhi Daredevils':
-    prediction_array = prediction_array + [0,1,0,0,0,0,0,0]
-elif bowling_team == 'Kings XI Punjab':
-    prediction_array = prediction_array + [0,0,1,0,0,0,0,0]
-elif bowling_team == 'Kolkata Knight Riders':
-    prediction_array = prediction_array + [0,0,0,1,0,0,0,0]
-elif bowling_team == 'Mumbai Indians':
-    prediction_array = prediction_array + [0,0,0,0,1,0,0,0]
-elif bowling_team == 'Rajasthan Royals':
-    prediction_array = prediction_array + [0,0,0,0,0,1,0,0]
-elif bowling_team == 'Royal Challengers Bangalore':
-    prediction_array = prediction_array + [0,0,0,0,0,0,1,0]
-elif bowling_team == 'Sunrisers Hyderabad':
-    prediction_array = prediction_array + [0,0,0,0,0,0,0,1]
-  
+prediction_array.extend(team_mapping[bowling_team])
 
 col1, col2 = st.columns(2)
 
-#Enter the Current Ongoing Over
+# Enter the Current Ongoing Over
 with col1:
-    overs = st.number_input('Enter the Current Over',min_value=5.1,max_value=19.5,value=5.1,step=0.1)
-    if overs-math.floor(overs)>0.5:
+    overs = st.number_input('Enter the Current Over', min_value=5.1, max_value=19.5, value=5.1, step=0.1)
+    if overs - math.floor(overs) > 0.5:
         st.error('Please enter valid over input as one over only contains 6 balls')
+
+# Enter Current Runs
 with col2:
-#Enter Current Run
-    runs = st.number_input('Enter Current runs',min_value=0,max_value=354,step=1,format='%i')
+    runs = st.number_input('Enter Current Runs', min_value=0, max_value=354, step=1, format='%i')
 
-
-#Wickets Taken till now
-wickets =st.slider('Enter Wickets fallen till now',0,9)
-wickets=int(wickets)
+# Wickets Taken till now
+wickets = st.slider('Enter Wickets Fallen till now', 0, 9)
 
 col3, col4 = st.columns(2)
 
+# Runs in last 5 overs
 with col3:
-#Runs in last 5 over
-    runs_in_prev_5 = st.number_input('Runs scored in the last 5 overs',min_value=0,max_value=runs,step=1,format='%i')
+    runs_in_prev_5 = st.number_input('Runs scored in the last 5 overs', min_value=0, max_value=runs, step=1, format='%i')
 
+# Wickets in last 5 overs
 with col4:
-#Wickets in last 5 over
-    wickets_in_prev_5 = st.number_input('Wickets taken in the last 5 overs',min_value=0,max_value=wickets,step=1,format='%i')
+    wickets_in_prev_5 = st.number_input('Wickets taken in the last 5 overs', min_value=0, max_value=wickets, step=1, format='%i')
 
-#Get all the data for predicting
-
-prediction_array = prediction_array + [runs, wickets, overs, runs_in_prev_5,wickets_in_prev_5]
+# Get all the data for prediction
+prediction_array.extend([runs, wickets, overs, runs_in_prev_5, wickets_in_prev_5])
 prediction_array = np.array([prediction_array])
 predict = model.predict(prediction_array)
 
-
 if st.button('Predict Score'):
-    #Call the ML Model
     my_prediction = int(round(predict[0]))
-    
-    #Display the predicted Score Range
-    x=f'PREDICTED MATCH SCORE : {my_prediction-5} to {my_prediction+5}' 
-    st.success(x)
-   
+    st.success(f'PREDICTED MATCH SCORE: {my_prediction-5} to {my_prediction+5}')
