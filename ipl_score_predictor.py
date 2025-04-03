@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import streamlit as st
 import os
+import requests
 
 # Set Streamlit Page Configuration
 st.set_page_config(page_title="IPL_Score_Predictor", layout="centered")
@@ -14,10 +15,13 @@ model_path = "ml_model.pkl"
 # Construct the direct download URL
 url = f"https://drive.google.com/uc?export=download&id={file_id}"
 
-# Download model using wget if not already present
+# Download model using requests if not already present
 if not os.path.exists(model_path):
     st.info("Downloading model, please wait...")
-    os.system(f"wget --no-check-certificate '{url}' -O {model_path}")
+    response = requests.get(url, stream=True)
+    with open(model_path, "wb") as file:
+        for chunk in response.iter_content(chunk_size=8192):
+            file.write(chunk)
 
 # Load the ML Model
 try:
