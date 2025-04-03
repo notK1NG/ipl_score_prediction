@@ -2,7 +2,6 @@ import math
 import numpy as np
 import pickle
 import streamlit as st
-import gdown
 import os
 
 # Set Streamlit Page Configuration
@@ -10,23 +9,21 @@ st.set_page_config(page_title="IPL_Score_Predictor", layout="centered")
 
 # Google Drive File ID for `ml_model.pkl`
 file_id = "1ddgUCDcKRBIp-HZA7qwMpNDOXYjWEIzl"  # Replace with actual file ID
-
-# Define model file path
 model_path = "ml_model.pkl"
 
-# Download model if not already present
+# Construct the direct download URL
+url = f"https://drive.google.com/uc?export=download&id={file_id}"
+
+# Download model using wget if not already present
 if not os.path.exists(model_path):
-    url = f"https://drive.google.com/uc?export=download&id={file_id}"
-    try:
-        gdown.download(url, model_path, fuzzy=True)
-        st.success("Model downloaded successfully!")
-    except Exception as e:
-        st.error(f"Error downloading model: {e}")
+    st.info("Downloading model, please wait...")
+    os.system(f"wget --no-check-certificate '{url}' -O {model_path}")
 
 # Load the ML Model
 try:
     with open(model_path, "rb") as file:
         model = pickle.load(file)
+    st.success("Model loaded successfully!")
 except Exception as e:
     st.error(f"Failed to load model: {e}")
 
