@@ -15,7 +15,13 @@ model_path = "ml_model.pkl"
 # Download model if not already present
 if not os.path.exists(model_path):
     url = f"https://drive.google.com/uc?id={file_id}"
-    gdown.download(url, model_path, quiet=False)
+    try:
+        gdown.download(url, model_path, quiet=False)
+        if not os.path.exists(model_path):
+            raise FileNotFoundError("Model download failed. Check the file ID or permissions.")
+    except Exception as e:
+        st.error(f"Error downloading model: {e}")
+        st.stop()
 
 # Load the ML model
 with open(model_path, 'rb') as file:
